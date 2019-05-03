@@ -12,14 +12,6 @@ var PORT = 8080;
 app.use(myParser.urlencoded({extended : false}));
 app.use(myParser.json());
 
-//prepare middleware to extract appId
-app.param('appId', function(request, response, next, appId) {
-    request.appId = appId;
-
-    next();
-});
-
-
 // Create a route for /numbers
 // An example inbound GET would be {domain}/numbers?api_key=xxxxf&api_secret=zzzz&type=landline&country=DE&features=SMS,VOICE
 
@@ -41,19 +33,35 @@ nexmo.number.get(function(err,rows){
 }
         });
 
-    console.log("Process request for  list of numbers associated with account " + request.query.api_key);
+    console.log('Processed request for  list of numbers associated with account ' + request.query.api_key);
 });
 
 // Create a route for /numbers/application
-  app.post('/numbers/application/:appId', function(request, response) {
-     console.log('Received this appId: ' + request.params.appId); //This prints the appId received
-     response.sendStatus(200);
+// An example inbound GET would be {domain}/application/?app_id=xxxxxx-xxxx-xxxx-xxxx-xxxxxx&api_key=xxxxxxx&api_secret=xxxxxx
+  app.get("/numbers/application", function(request, response) {
+
+// Get URL parameters from request  
+  const nexmo = new Nexmo({
+    apiKey: request.query.api_key,
+    apiSecret: request.query.api_secret,
+  }, );
+
+// Send request to Nexmo using Nexmo node libraries and respond with json values
+nexmo.applications.get(request.query.app_id,function(err,rows){
+            if(err) {
+                response.status(500).json({"Error" : true, "Message" : "Error executing request"});
+            } else {
+                response.status(200).json(rows);
+}
+        });
+
+     console.log('Processed request for  details of this application ' + request.query.app_id);
 
 });
 
 // Create a route for /numbers/application
   app.post('/numbers/applications/', function(request, response) {
-     console.log('Received this appId: ' + request.params.appId); //This prints the appId received
+     console.log('Received this appId: ' + request.params.app_id); //This prints the appId received
      response.sendStatus(200);
 
 });
