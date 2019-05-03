@@ -38,7 +38,7 @@ nexmo.number.get(function(err,rows){
 
 // Create a route for /numbers/application
 // An example inbound GET would be {domain}/application/?app_id=xxxxxx-xxxx-xxxx-xxxx-xxxxxx&api_key=xxxxxxx&api_secret=xxxxxx
-  app.get("/numbers/application", function(request, response) {
+  app.get("/application", function(request, response) {
 
 // Get URL parameters from request  
   const nexmo = new Nexmo({
@@ -59,6 +59,83 @@ nexmo.applications.get(request.query.app_id,function(err,rows){
 
 });
 
+  app.get("/applications", function(request, response) {
+
+// Get URL parameters from request  
+  const nexmo = new Nexmo({
+    apiKey: request.query.api_key,
+    apiSecret: request.query.api_secret,
+  }, );
+
+// Send request to Nexmo using Nexmo node libraries and respond with json values
+nexmo.application.get(function(err,rows){
+            if(err) {
+                response.status(500).json({"Error" : true, "Message" : "Error executing request"});
+            } else {
+                response.status(200).json(rows);
+}
+        });
+
+     console.log('Processed request for list of all applications associated with account ' + request.query.api_key);
+
+});
+
+// Create a route for /application
+// An example inbound POST would be {domain}/application/?app_id=1a648832-af31-4c90-9330-5e11689e63f4&api_key=xxxxxx&api_secret=yyyyyy&country=de&msisdn=498944314615001&action=configure
+
+app.post("/application", function(request, response) {
+        
+        // Get URL parameters from request
+        const nexmo = new Nexmo({
+                                apiKey: request.query.api_key,
+                                apiSecret: request.query.api_secret,
+                                }, );
+
+         var params = {
+         voiceCallbackType: "app",
+         voiceCallbackValue: "request.query.app_id"
+         };
+         
+         // Send request to Nexmo using Nexmo node libraries and respond with json values
+         if (request.query.action == "configure") {
+         nexmo.number.update(request.query.country, request.query.msisdn, params, function(err,rows){
+                               if(err) {
+                               response.status(500).json({"Error" : true, "Message" : "Error executing request"});
+                               } else {
+                               response.status(200).json(rows);
+                               }
+                               });
+         
+         // Send request to Nexmo using Nexmo node libraries and respond with json values
+         if (request.query.action == "unconfigure") {
+         nexmo.number.update(request.query.country, request.query.msisdn, function(err,rows){
+                             if(err) {
+                             response.status(500).json({"Error" : true, "Message" : "Error executing request"});
+                             } else {
+                             response.status(200).json(rows);
+                             }
+                             });
+         
+         
+         
+         
+         
+         
+         then}
+         
+         nexmo.application.get(function(err,rows){
+                               if(err) {
+                               response.status(500).json({"Error" : true, "Message" : "Error executing request"});
+                               } else {
+                               response.status(200).json(rows);
+                               }
+                               });
+         
+         console.log('Processed request for list of all applications associated with account ' + request.query.api_key);
+         
+         });
+         
+         
 // Create a route for /numbers/application
   app.post('/numbers/applications/', function(request, response) {
      console.log('Received this appId: ' + request.params.app_id); //This prints the appId received
