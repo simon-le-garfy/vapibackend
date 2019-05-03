@@ -24,18 +24,15 @@ app.param('appId', function(request, response, next, appId) {
 // An example inbound GET would be {domain}/numbers?api_key=xxxxf&api_secret=zzzz&type=landline&country=DE&features=SMS,VOICE
 
   app.get("/numbers", function(request, response) {
-  
+
+// Get URL parameters from request  
   const nexmo = new Nexmo({
     apiKey: request.query.api_key,
     apiSecret: request.query.api_secret,
-//    applicationId: request.query.api_key,
+//    applicationId: request.query.appId, // appId is not required for this request 
   }, );
-   
-//  var result = nexmo.number.get;
-//console.log(nexmo.number.get);
-//var json = nexmo.number.get;
-//nexmo.number.get(response.status(200).json(this));
 
+// Send request to Nexmo using Nexmo node libraries and respond with json values
 nexmo.number.get(function(err,rows){
             if(err) {
                 response.status(500).json({"Error" : true, "Message" : "Error executing request"});
@@ -44,23 +41,7 @@ nexmo.number.get(function(err,rows){
 }
         });
 
-
-
-//nexmo.number.get(rows);
-//response.json ({"Error" : false, "Message" : "Success", "Users" : rows});
-
-  
-//  console.log("params", Object.assign(request.query, request.body)) 
-//  response.status(204).send()
-//}
-
-//console.log (json);
-  //  response.setHeader('Content-Type', 'application/json')
-//    response.json(json);
-
-    console.log(request.query.api_key,request.query.api_secret); //This prints the JSON document received (if it is a JSON document)
-//    response.sendStatus(200);
-
+    console.log("Process request for  list of numbers associated with account " + request.query.api_key);
 });
 
 // Create a route for /numbers/application
