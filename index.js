@@ -1,138 +1,78 @@
 //Import the necessary libraries/declare the necessary objects
 // express is used to create a simple web server
-var express = require("express");
-// \
-const Nexmo = require('nexmo');
-// body-parser is a third-party parsing library.
-var myParser = require("body-parser");
+var express = require('express');
 var app = express();
+
+// HTTP listening port for express
 var PORT = 8080;
+
+// Dependencies
+var numbers = require ('./numbers');
+var application = require ('./application');
+var initCredentials = require('./initCredentials');
+var association = require('./association');
+var updateAppUris = require('./updateAppUris');
+
+// Enable logging for the http express server (https://github.com/expressjs/morgan)
+var morgan = require('morgan');
+morgan('tiny');
+
+// body-parser is a third-party parsing library useful in some cases
+var myParser = require("body-parser");
 
 //use the body parser middleware in express
 app.use(myParser.urlencoded({extended : false}));
 app.use(myParser.json());
 
-// Create a route for /numbers
+// Create a route for inbound get requests
 // An example inbound GET would be {domain}/numbers?api_key=xxxxf&api_secret=zzzz&type=landline&country=DE&features=SMS,VOICE
+// In this case we will use a switch to determine the required action based  on the received URL. An alternative approach would be to use app.Router class
+ 
+app.all("/:path", function(request, response) {  // Allow GET or POST
+ 
+  const nexmo = initCredentials(request.query, response); // Obtain API key and secret from URI query parameters and populate nexmo object
+       
+        const path = request.params.path;
+        console.log('Switching based on this path /' + request.params.path);
 
-  app.get("/numbers", function(request, response) {
+        switch(path) {                         // Switch based on the path in the URL of the GET request 
+          case 'numbers' :                     // Matching on /numbers
+           console.log('Matched /numbers ');
+           numbers(request.query, response, nexmo);
+          break;
+       
+          case 'application' :               // Matching on /application
+            console.log('Matched /application ');
+            application(request.query, response, nexmo);
+            updateAppUris(request.query, response, nexmo);
+          break;
 
-// Get URL parameters from request  
-  const nexmo = new Nexmo({
-    apiKey: request.query.api_key,
-    apiSecret: request.query.api_secret,
-//    applicationId: request.query.appId, // appId is not required for this request 
-  }, );
+          case 'association' :
+            console.log('Match /association ');
+            association(request.query, response, nexmo);
+          break
 
-// Send request to Nexmo using Nexmo node libraries and respond with json values
-nexmo.number.get(function(err,rows){
-            if(err) {
-                response.status(500).json({"Error" : true, "Message" : "Error executing request"});
-            } else {
-                response.status(200).json(rows);
-}
-        });
+          case 'ncco' :
+            console.log('Match /ncco ');
+            ncco(request.query, response, nexmo);
+          break
 
-    console.log('Processed request for  list of numbers associated with account ' + request.query.api_key);
-});
+          case 'event' :
+            console.log('Match /event ');
+            console.log(req.body);
+            res.status(204).end();
+          break
 
-// Create a route for /numbers/application
-// An example inbound GET would be {domain}/application/?app_id=xxxxxx-xxxx-xxxx-xxxx-xxxxxx&api_key=xxxxxxx&api_secret=xxxxxx
-  app.get("/application", function(request, response) {
+          default :
+            if (agentMapping[path] != undefined) {
+              
+            }
+            console.log('No match on URI path');        // Catch-all
+        }
+   });
 
-          
-// Get URL parameters from request  
-  const nexmo = new Nexmo({
-    apiKey: request.query.api_key,
-    apiSecret: request.query.api_secret,
-  }, );
-
-// Send request to Nexmo using Nexmo node libraries and respond with json values
-nexmo.applications.get(request.query.app_id,function(err,rows){
-            if(err) {
-                response.status(500).json({"Error" : true, "Message" : "Error executing request"});
-            } else {
-                response.status(200).json(rows);
-}
-        });
-
-     console.log('Processed request for  details of this application ' + request.query.app_id);
-          
-});
-
-  app.get("/applications", function(request, response) {
-
-// Get URL parameters from request  
-  const nexmo = new Nexmo({
-    apiKey: request.query.api_key,
-    apiSecret: request.query.api_secret,
-  }, );
-
-// Send request to Nexmo using Nexmo node libraries and respond with json values
-nexmo.application.get(function(err,rows){
-            if(err) {
-                response.status(500).json({"Error" : true, "Message" : "Error executing request"});
-            } else {
-                response.status(200).json(rows);
-}
-        });
-
-     console.log('Processed request for list of all applications associated with account ' + request.query.api_key);
-
-});
-
-// Create a route for /application
-// An example inbound POST would be {domain}/application/?app_id=1a648832-af31-4c90-9330-5e11689e63f4&api_key=xxxxxx&api_secret=yyyyyy&country=de&msisdn=498944314615001&action=configure
-
-app.post("/application", function(request, response) {
-         console.log("Running POST /application");
-        // Get URL parameters from request
-        const nexmo = new Nexmo({
-                                apiKey: request.query.api_key,
-                                apiSecret: request.query.api_secret,
-                                }, );
-
-         var params = {
-         voiceCallbackType: "app",
-         voiceCallbackValue: "request.query.app_id"
-         };
-         
-         // Send request to Nexmo using Nexmo node libraries and respond with json values
-         if (request.query.action == "configure") {
-         nexmo.number.update(request.query.country, request.query.msisdn, params, function(err,rows){
-                               if(err) {
-                               response.status(500).json({"Error" : true, "Message" : "Error executing request"});
-                               } else {
-                               response.status(200).json(rows);
-                               }
-                               });
-         };
-         // Send request to Nexmo using Nexmo node libraries and respond with json values
-         if (request.query.action == "unconfigure") {
-         nexmo.number.update(request.query.country, request.query.msisdn, function(err,rows){
-                             if(err) {
-                             response.status(500).json({"Error" : true, "Message" : "Error executing request"});
-                             } else {
-                             response.status(200).json(rows);
-                             }
-                             });
-         
-         };
-         
-         
-         console.log('Processed request for list of all applications associated with account ' + request.query.api_key);
-         
-         });
-         
-         
-// Create a route for /numbers/application
-  app.post('/numbers/applications/', function(request, response) {
-     console.log('Received this appId: ' + request.params.app_id); //This prints the appId received
-     response.sendStatus(200);
-
-});
-
-
-
+    
 //Start the server and make it listen for connections on port 8080 
 app.listen(PORT);
+console.log ('Listening on port: ' + PORT);
+
