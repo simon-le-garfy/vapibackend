@@ -1,15 +1,13 @@
-function association(requestQuery, response, nexmo) {
+function association(requestQuery, response, agentMapping) {
 
-    if ((requestQuery.lvn) || (requestQuery.agent)) {
+    if ((requestQuery.lvn) && (requestQuery.agent)) {
         
-        var agentMapping = {};
         agentMapping[requestQuery.lvn] = requestQuery.agent;
         console.log('Associated ' + requestQuery.lvn + ' with ' + requestQuery.agent)
-        console.log(agentMapping);
+        
+        console.log('agentMapping[requestQuery.lvn] ' + agentMapping[requestQuery.lvn]);
         response.status(200).send('OK');
-   // No action has been specified in URL
-   // Now check if an applicationId has been specified
-   // If no applicationId is specified set appId to 'null' as nexmo.applications.get requires object to be defined
+        return (agentMapping);
     } else {
         response.status(500).json({"Error" : true, "Message" : "Please provide both LVN and agent to associate"});
         }

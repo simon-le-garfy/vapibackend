@@ -18,13 +18,12 @@ application = function (requestQuery, response, nexmo) {
                     response.status(500).json({"Error" : true, "Message" : "Error executing configure request"});
                         } else {
                         response.status(200).json(rows);
-                                }
+                                }   
                     });
-                
-                break
+            break
 
-                case 'unconfigure' :                    // action=unconfigure received in URL query parameters 
-                console.log('unconfigure action');
+            case 'unconfigure' :                    // action=unconfigure received in URL query parameters 
+                console.log('unconfigure action being processed');
                // *** TO-DO add some parameter validation
                var params = {
                 voiceCallbackType: 'app',
@@ -37,7 +36,8 @@ application = function (requestQuery, response, nexmo) {
             response.status(200).json(rows);
                         }
             });
-                break
+            break
+
             default :
                 response.status(500).json({"Error" : true, "Message" : "Action query is not known"});
         }
